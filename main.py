@@ -9,7 +9,7 @@ pygame.init()
 size = width, height = 600, 600
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("ChooseBrick")
-version = "0.1.0"
+version = "0.3.1"
 click = pygame.mixer.Sound(os.path.join("data", "click.ogg"))
 level_winner = pygame.mixer.Sound(os.path.join("data", "winner_level.ogg"))
 console_string = ''
@@ -544,6 +544,8 @@ while running:
 			console_string += event.unicode
 			if 'yareyaredeze' in console_string:
 				displayEnding()
+				Handler.load_menu(board)
+			if event.key == 27:
 				Handler.load_menu(board)
 
 			"""
