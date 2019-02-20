@@ -12,6 +12,7 @@ pygame.display.set_caption("ChooseBrick")
 version = "0.1.0"
 click = pygame.mixer.Sound(os.path.join("data", "click.ogg"))
 level_winner = pygame.mixer.Sound(os.path.join("data", "winner_level.ogg"))
+console_string = ''
 
 
 def test_wait():
@@ -535,12 +536,16 @@ while running:
 				pass
 					
 
-		# elif event.type == pygame.KEYDOWN:
+		elif event.type == pygame.KEYDOWN:
 			# if event.unicode == 'b':
 				# print("\n".join([str(i) for i in board.board]))
 			# if event.unicode == 'v':
 				# print(brick.right_side_x)
-			
+			console_string += event.unicode
+			if 'yareyaredeze' in console_string:
+				displayEnding()
+				Handler.load_menu(board)
+
 			"""
 			if event.unicode == 'e':
 				displayEnding()
