@@ -24,7 +24,7 @@ def test_wait():
 			elif event.type == pygame.KEYDOWN:
 				if event.unicode == 'n':
 					local_runing = False
-					print('test_wait done')
+					# print('test_wait done')
 					return 0
 
 
@@ -72,7 +72,7 @@ def load_image(name, colorkey=None):
 	try:
 		image = pygame.image.load(fullname)
 	except pygame.error as message:
-		print("Cannot load the image")
+		# print("Cannot load the image")
 		raise SystemExit(message)
 	image = image.convert_alpha()
 	if colorkey is not None:
@@ -133,7 +133,8 @@ class Board():
 		try:
 			a = needed_block
 		except Exception:
-			print('Cannot find a block')
+			# print('Cannot find a block')
+			pass
 		else:
 			return needed_block
 
@@ -202,8 +203,8 @@ class Block(pygame.sprite.Sprite):
 
 		elif self.orientation == Block.VERTICAL:
 			for i in range(self.length):
-				print(y + i)
-				print(self.number)
+				# print(y + i)
+				# print(self.number)
 				self.board.board[self.y + i][self.x] = self.number
 			if self.length == 3:
 				self.image = pygame.transform.scale(load_image("vertical3.png"), (80, 240))
@@ -307,7 +308,7 @@ class Block(pygame.sprite.Sprite):
 		# print('self.orientation = {}'.format(self.orientation))
 
 		if self.orientation == Block.HORIZONTAL:
-			print('i`m here')
+			# print('i`m here')
 			for i in range(self.length):
 				self.board.board[self.y][self.x + i] = self.number
 
@@ -352,13 +353,13 @@ class Block(pygame.sprite.Sprite):
 		return '\n'.join(infos)
 
 	def count_right_side_x(self):
-		print("counted")
+		# print("counted")
 		if self.orientation == MenuBlock.HORIZONTAL:
 			self.right_side_x = self.rect.x + self.length * self.board.cell_size
 		elif self.orientation == MenuBlock.VERTICAL:
 			self.right_side_x = self.rect.x + self.board.cell_size
 
-		print(self.right_side_x)
+		# print(self.right_side_x)
 
 class MenuBlock(Block):
 
@@ -516,7 +517,7 @@ while running:
 		elif event.type == pygame.MOUSEMOTION:
 			try:
 				if brick is not None and not brick.holographic:
-					print('жжъьжъьжьъь')
+					# print('жжъьжъьжьъь')
 					delta = event.pos[0] - LP[0], event.pos[1] - LP[1]
 					LP = event.pos
 					brick.update(delta)
@@ -534,11 +535,11 @@ while running:
 				pass
 					
 
-		elif event.type == pygame.KEYDOWN:
-			if event.unicode == 'b':
-				print("\n".join([str(i) for i in board.board]))
-			if event.unicode == 'v':
-				print(brick.right_side_x)
+		# elif event.type == pygame.KEYDOWN:
+			# if event.unicode == 'b':
+				# print("\n".join([str(i) for i in board.board]))
+			# if event.unicode == 'v':
+				# print(brick.right_side_x)
 			
 			"""
 			if event.unicode == 'e':
