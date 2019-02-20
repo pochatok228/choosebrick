@@ -6,7 +6,7 @@ import json
 
 
 pygame.init()
-size = width, height = 1000, 600
+size = width, height = 600, 600
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("ChooseBrick")
 version = "0.1.0"
@@ -26,6 +26,37 @@ def test_wait():
 					local_runing = False
 					print('test_wait done')
 					return 0
+
+
+def displayScreenSaver():
+
+	SSruning = True
+	while SSruning:
+		screen.blit(pygame.transform.scale(load_image('screen_saver_start.jpg'), (600, 600)), (0, 0))
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				pygame.quit()
+				sys.exit()
+			elif event.type == pygame.KEYDOWN:
+				if event.key == 13:
+					SSruning = False
+		pygame.display.flip()
+
+def displayEnding():
+	SSruning = True
+	pygame.mixer.music.pause()
+	ending_music = pygame.mixer.Sound(os.path.join("data", "ending.ogg"))
+	ending_music.play()
+	while SSruning:
+		screen.blit(pygame.transform.scale(load_image('ending.jpg'), (600, 600)), (0, 0))
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				pygame.quit()
+				sys.exit()
+			elif event.type == pygame.KEYDOWN:
+				if event.key == 13:
+					SSruning = False
+		pygame.display.flip()
 
 
 class StopMovingError(Exception):
@@ -52,7 +83,7 @@ def load_image(name, colorkey=None):
 def loadAndPlayFM(name):
 	fullname = os.path.join("data", name)
 	pygame.mixer.music.load(fullname)
-	pygame.mixer.music.play()
+	pygame.mixer.music.play(-1)
 
 
 class Board():
@@ -162,20 +193,34 @@ class Block(pygame.sprite.Sprite):
 		if self.orientation == Block.HORIZONTAL:
 			for i in range(self.length):
 				self.board.board[self.y][self.x + i] = self.number
-			self.image = pygame.Surface((self.board.cell_size * self.length, self.board.cell_size))
+			if self.length == 2:
+				self.image = pygame.transform.scale(load_image("horizontal2.png"), (160, 80))
+			elif self.length == 3:
+				self.image = pygame.transform.scale(load_image("horizontal3.png"), (240, 80))
+			if self.x == 0 and self.y == 2:
+				self.image = pygame.transform.scale(load_image("main.png"), (160, 80))
 
 		elif self.orientation == Block.VERTICAL:
 			for i in range(self.length):
+				print(y + i)
+				print(self.number)
 				self.board.board[self.y + i][self.x] = self.number
-			self.image = pygame.Surface((self.board.cell_size, self.board.cell_size * self.length))
+			if self.length == 3:
+				self.image = pygame.transform.scale(load_image("vertical3.png"), (80, 240))
+			elif self.length == 2:
+				self.image = pygame.transform.scale(load_image("vertical2.png"), (80, 160))
+			# self.image = pygame.Surface((self.board.cell_size, self.board.cell_size * self.length))
 
 		elif self.orientation == Block.CUBE:
 			for line in range(self.length):
 				for row in range(self.length):
 					self.board.board[self.y + row][self.x + line] = self.number
-			self.image = pygame.Surface((self.board.cell_size * self.length, self.board.cell_size * self.length))
+			if self.x == 2 and self.y == 3:
+				self.image = pygame.transform.scale(load_image("menublock.png"), (80, 80))
+			else:
+				self.image = pygame.transform.scale(load_image("shina.png"), (80, 80))
 
-		self.image.fill((random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)))
+		# self.image.fill((random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)))
 
 		pygame.sprite.Sprite.__init__(self)
 		self.rect = self.image.get_rect()
@@ -292,7 +337,7 @@ class Block(pygame.sprite.Sprite):
 		myfont = pygame.font.SysFont("comicsansms", size)
 		merged_text = self.image
 		for i in range(len(self.text)):
-			text_line = myfont.render(self.text[i], True, (0, 0, 0))
+			text_line = myfont.render(self.text[i], True, (255, 255, 255))
 			merged_text.blit(text_line, (self.image.get_rect().centerx - text_line.get_rect().centerx, size * i))
 		self.image = merged_text
 
@@ -360,13 +405,19 @@ class Handler():
 		block_sprites.empty()
 		board.empty()
 		block = Block(0, 0, 1, board, Block.CUBE, True)
-		block.set_text("\nLevel\n1")
+		block.set_text("\n1")
 		block = Block(1, 0, 1, board, Block.CUBE, True)
-		block.set_text("\nLevel\n2")
+		block.set_text("\n2")
 		block = Block(2, 0, 1, board, Block.CUBE, True)
-		block.set_text("\nLevel\n3")
+		block.set_text('\n3')
+		block = Block(3, 0, 1, board, Block.CUBE, True)
+		block.set_text('\n4')
+		block = Block(4, 0, 1, board, Block.CUBE, True)
+		block.set_text('\n5')
+		block = Block(5, 0, 1, board, Block.CUBE, True)
+		block.set_text('\n6')
 		menublock = Block(2, 3, 1, board, Block.CUBE)
-		menublock.set_text("Put me\nOn\nLVL")
+		# menublock.set_text("Put me\nOn\nLVL")
 
 
 	def loadLevel(level_number, board):
@@ -398,6 +449,8 @@ class Handler():
 		# print("\n".join([str(i) for i in board.board]))
 		# MENUISON = False
 
+loadAndPlayFM('can`t stand it.mp3')
+displayScreenSaver()
 
 
 background_image = load_image('background_image.jpg')
@@ -425,7 +478,7 @@ level = MENU
 MENUISON = True
 current_level = 0
 # h.load_menu("")
-loadAndPlayFM('main.ogg')
+
 while running:
 	screen.blit(background_image, (0, 0))
 	for event in pygame.event.get():
@@ -471,9 +524,11 @@ while running:
 						brick.finish_moving()
 						clock.tick(1)
 						current_level += 1
-						Handler.loadLevel(current_level, board)
-						level_winner.play()
-						
+						if current_level > 6:
+							displayEnding()
+						else:
+							Handler.loadLevel(current_level, board)
+							level_winner.play()
 						del brick
 			except NameError:
 				pass
@@ -484,7 +539,14 @@ while running:
 				print("\n".join([str(i) for i in board.board]))
 			if event.unicode == 'v':
 				print(brick.right_side_x)
+			
+			"""
+			if event.unicode == 'e':
+				displayEnding()
+				Handler.load_menu(board)
+			"""
 
+	
 	"""
 	if menublock.x == 3 and menublock.y == 3 and level == MENU:
 		Handler.loadLevel(current_level, board)
