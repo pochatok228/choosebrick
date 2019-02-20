@@ -9,8 +9,23 @@ pygame.init()
 size = width, height = 1000, 600
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("ChooseBrick")
-version = "0.0.7"
-click = pygame.mixer.Sound(os.path.join("data", "click.ogg"))	
+version = "0.1.0"
+click = pygame.mixer.Sound(os.path.join("data", "click.ogg"))
+level_winner = pygame.mixer.Sound(os.path.join("data", "winner_level.ogg"))
+
+
+def test_wait():
+
+	local_runing = True
+	while local_runing:
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				sys.exit()
+			elif event.type == pygame.KEYDOWN:
+				if event.unicode == 'n':
+					local_runing = False
+					print('test_wait done')
+					return 0
 
 
 class StopMovingError(Exception):
@@ -98,12 +113,21 @@ class Board():
 		vertical_border.rect.x = 50
 		vertical_border.rect.y = 50
 		vertical_borders.add(vertical_border)
+
 		vertical_border2 = pygame.sprite.Sprite()
-		vertical_border2.image = load_image("vertical.jpg")
+		vertical_border2.image = load_image("vertical1.jpg")
 		vertical_border2.rect = vertical_border2.image.get_rect()
 		vertical_border2.rect.x = 540
 		vertical_border2.rect.y = 50
 		vertical_borders.add(vertical_border2)
+
+		vertical_border3 = pygame.sprite.Sprite()
+		vertical_border3.image = load_image("vertical2.jpg")
+		vertical_border3.rect = vertical_border2.image.get_rect()
+		vertical_border3.rect.x = 540
+		vertical_border3.rect.y = 300
+		vertical_borders.add(vertical_border3)
+
 		horizontal_border = pygame.sprite.Sprite()
 		horizontal_border.image = load_image("horizontal.jpg")
 		horizontal_border.rect = horizontal_border.image.get_rect()
@@ -134,6 +158,7 @@ class Block(pygame.sprite.Sprite):
 		self.number = (self.board.maxnum + 1) if not holographic else (self.board.holos_amount - 2)
 		self.board.maxnum += 1 if not holographic else 0
 		self.image = None
+		self.right_side_x = self.y + self.length * self.board.cell_size
 		if self.orientation == Block.HORIZONTAL:
 			for i in range(self.length):
 				self.board.board[self.y][self.x + i] = self.number
@@ -203,6 +228,7 @@ class Block(pygame.sprite.Sprite):
 			for i in self.board.holos:
 				block_sprites.add(i)
 			block_sprites.add(self)
+			self.count_right_side_x()
 
 		except StopMovingError:
 			self.update(delta)
@@ -211,14 +237,19 @@ class Block(pygame.sprite.Sprite):
 		if self.rect.x >= self.board.left + self.board.cell_size * (self.board.x - (self.length if self.orientation == Block.HORIZONTAL or self.orientation == Block.CUBE else 0)):
 			self.rect.x = self.board.left + self.board.cell_size * (self.board.x - (self.length if self.orientation == Block.HORIZONTAL or self.orientation == Block.CUBE else 0))
 
-		if self.rect.y >= self.board.left + self.board.cell_size * (self.board.x - (self.length if self.orientation == Block.HORIZONTAL or self.orientation == Block.CUBE else 0)):
-			self.rect.y = self.board.left + self.board.cell_size * (self.board.x - (self.length if self.orientation == Block.HORIZONTAL or self.orientation == Block.CUBE else 0))
+		if self.rect.y >= self.board.top + self.board.cell_size * (self.board.y - (self.length if self.orientation == Block.VERTICAL or self.orientation == Block.CUBE else 0)):
+			# print("self.rect.y = {}".format(self.rect.y))
+			self.rect.y = self.board.top + self.board.cell_size * (self.board.y - (self.length if self.orientation == Block.VERTICAL or self.orientation == Block.CUBE else 0))
+			# print("self.rect.y = {}".format(self.rect.y))
 
 		self.rect.x = self.rect.x // self.board.cell_size * self.board.cell_size + self.board.left
+		# print("self.rect.y = {}".format(self.rect.y))
 		self.rect.y = self.rect.y // self.board.cell_size * self.board.cell_size + self.board.top
+		# print("self.rect.y = {}".format(self.rect.y))
 		self.x = (self.rect.x - self.board.left) // self.board.cell_size
 		self.y = (self.rect.y - self.board.top) // self.board.cell_size
 
+		
 		new_board = [[0] * self.board.x for i in range(self.board.y)]
 		for i in range(len(self.board.board)):
 			for item in range(len(self.board.board[i])):
@@ -226,7 +257,12 @@ class Block(pygame.sprite.Sprite):
 					new_board[i][item] = self.board.board[i][item]
 		self.board.board = new_board
 
+		# test_wait()
+		# print('test_wait 1')
+		# print('self.orientation = {}'.format(self.orientation))
+
 		if self.orientation == Block.HORIZONTAL:
+			print('i`m here')
 			for i in range(self.length):
 				self.board.board[self.y][self.x + i] = self.number
 
@@ -234,10 +270,13 @@ class Block(pygame.sprite.Sprite):
 			for i in range(self.length):
 				self.board.board[self.y + i][self.x] = self.number
 
+
 		elif self.orientation == Block.CUBE:
 			for line in range(self.length):
 				for row in range(self.length):
 					self.board.board[self.y + row][self.x + line] = self.number
+		# test_wait()
+		# print('test_wait 2')
 		click.play()
 
 
@@ -256,6 +295,25 @@ class Block(pygame.sprite.Sprite):
 			text_line = myfont.render(self.text[i], True, (0, 0, 0))
 			merged_text.blit(text_line, (self.image.get_rect().centerx - text_line.get_rect().centerx, size * i))
 		self.image = merged_text
+
+	def get_info(self):
+		infos = []
+		infos.append("Block")
+		infos.append("self.number " + str(self.number))
+		infos.append("self.orientation " + str(self.orientation))
+		infos.append("self.length " + str(self.length))
+		infos.append("self.x, self.y = " + str(self.x) + ' ' + str(self.y))
+		infos.append('\n')
+		return '\n'.join(infos)
+
+	def count_right_side_x(self):
+		print("counted")
+		if self.orientation == MenuBlock.HORIZONTAL:
+			self.right_side_x = self.rect.x + self.length * self.board.cell_size
+		elif self.orientation == MenuBlock.VERTICAL:
+			self.right_side_x = self.rect.x + self.board.cell_size
+
+		print(self.right_side_x)
 
 class MenuBlock(Block):
 
@@ -316,18 +374,29 @@ class Handler():
 		filename = 'levels.json'
 		with open(filename) as file:
 			levels = json.loads(file.read())
-		
 		level = levels[str(level_number)]
 		board.empty()
 		block_sprites.empty()
-
+		"""
 		for col in range(len(board.board)):
 			for row in range(len(board.board[col])):
 				if type(level[row][col]) == str:
 					print("level[row][col] = {}, row = {}, col = {}".format(level[row][col], row, col))
 					inf = level[row][col].split()
 					block = Block(row, col, int(inf[2]), board, int(inf[1]))
+					test_wait()
 		MENUISON = False
+		"""
+		for col in range(len(level)):
+			for row in range(len(level[col])):
+				if type(level[col][row]) == str:
+					# print("level[row][col] = {}, row = {}, col = {}".format(level[row][col], row, col))
+					inf = level[col][row].split()
+					block = Block(col, row, int(inf[2]), board, int(inf[1]))
+					# print(block.get_info())
+					# test_wait()
+		# print("\n".join([str(i) for i in board.board]))
+		# MENUISON = False
 
 
 
@@ -346,12 +415,15 @@ board = Board(6, 6, 60, 60, 80)
 menublock = Block(2, 3, 1, board, Block.CUBE)
 menublock.set_text("Put me\nOn\nLVL")
 Handler.load_menu(board)
+clock = pygame.time.Clock()
+fps = 60
 
 moving = 0
 brick = None
 MENU = 0
 level = MENU
 MENUISON = True
+current_level = 0
 # h.load_menu("")
 loadAndPlayFM('main.ogg')
 while running:
@@ -372,35 +444,59 @@ while running:
 
 		elif event.type == pygame.MOUSEBUTTONUP:
 			moving = 0
-			if brick is not None and not brick.holographic:
-				brick.finish_moving()
-				covered = brick.get_covered()
-				if covered and MENUISON:
-					print(covered.number)
-					Handler.loadLevel(covered.number * -1, board)
-				brick.finish_moving()
-				# brick.finish_moving()
-			brick = None
+			try:
+				if brick is not None and not brick.holographic:
+					brick.finish_moving()
+					covered = brick.get_covered()
+					if covered and MENUISON:
+						# print(covered.number)
+						current_level = covered.number * -1
+						Handler.loadLevel(covered.number * -1, board)
+					# brick.finish_moving()
+					# test_wait()
+
+					# brick.finish_moving()
+				brick = None
+			except NameError:
+				pass
 
 		elif event.type == pygame.MOUSEMOTION:
-			if brick is not None and not brick.holographic:
-				delta = event.pos[0] - LP[0], event.pos[1] - LP[1]
-				LP = event.pos
-				brick.update(delta)
+			try:
+				if brick is not None and not brick.holographic:
+					print('жжъьжъьжьъь')
+					delta = event.pos[0] - LP[0], event.pos[1] - LP[1]
+					LP = event.pos
+					brick.update(delta)
+					if brick.right_side_x > 550:
+						brick.finish_moving()
+						clock.tick(1)
+						current_level += 1
+						Handler.loadLevel(current_level, board)
+						level_winner.play()
+						
+						del brick
+			except NameError:
+				pass
+					
 
 		elif event.type == pygame.KEYDOWN:
 			if event.unicode == 'b':
 				print("\n".join([str(i) for i in board.board]))
+			if event.unicode == 'v':
+				print(brick.right_side_x)
 
+	"""
 	if menublock.x == 3 and menublock.y == 3 and level == MENU:
 		Handler.loadLevel(current_level, board)
 		level = current_level
+	"""
 
 	board.render()
 	block_sprites.draw(screen)
 	vertical_borders.draw(screen)
 	horizontal_borders.draw(screen)
 	pygame.display.flip()
+	clock.tick(fps)
 
 pygame.quit()
 sys.exit()
